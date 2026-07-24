@@ -1,4 +1,4 @@
-# Sardius Media Module
+# Sardius Live
 
 Control Sardius Media live events directly from Bitfocus Companion.
 

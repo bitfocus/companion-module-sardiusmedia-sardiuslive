@@ -1,6 +1,6 @@
-# companion-module-sardiusmedia-sardiuslive
+# Sardius Live
 
-Bitfocus Companion module for [Sardius Media](https://sardius.media) — control live events directly from your Stream Deck.
+Bitfocus Companion module for [Sardius Live](https://sardius.media) — control live events directly from your Stream Deck.
 
 ## Configuration
 
