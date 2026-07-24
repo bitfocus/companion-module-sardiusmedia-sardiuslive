@@ -1,9 +1,9 @@
 {
 	"$schema": "../node_modules/@companion-module/base/assets/manifest.schema.json",
 	"type": "connection",
-	"id": "sardius-media",
+	"id": "sardius-live",
 	"name": "Sardius Live",
-	"shortname": "sardius",
+	"shortname": "Sardius",
 	"description": "Control Sardius Live events from Bitfocus Companion",
 	"manufacturer": "Sardius Media",
 	"products": ["Sardius Live"],
