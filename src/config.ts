@@ -10,10 +10,10 @@ export function getConfigFields(channels: { id: string; name: string }[] = []): 
 	const fields: SomeCompanionConfigField[] = [
 		{
 			type: 'static-text',
-			id: 'info',
+			id: 'step1_header',
 			width: 12,
-			label: 'Information',
-			value: 'Enter your API Key and Account ID. Channels are loaded automatically from your Sardius account. Use the cycle actions to switch between channels — all feedback and event actions follow the selected channel.',
+			label: 'Step 1 — Authenticate',
+			value: 'Enter your Sardius Stream Deck API Key and Account ID. You can find these in the Sardius Control Panel under Settings → API Keys.',
 		},
 		{
 			type: 'textinput',
@@ -22,6 +22,7 @@ export function getConfigFields(channels: { id: string; name: string }[] = []): 
 			width: 12,
 			minLength: 1,
 			default: '',
+			tooltip: 'Generate a Stream Deck API Key in the Sardius Control Panel under Settings → API Keys.',
 		},
 		{
 			type: 'textinput',
@@ -30,27 +31,38 @@ export function getConfigFields(channels: { id: string; name: string }[] = []): 
 			width: 6,
 			minLength: 1,
 			default: '',
+			tooltip: 'Your Sardius account identifier. Found in the Control Panel under your account settings.',
 		},
 	]
 
 	if (channels.length === 0) {
 		fields.push({
 			type: 'static-text',
-			id: 'channels_hint',
+			id: 'step2_header',
 			width: 12,
-			label: 'Channels',
-			value: 'No channels loaded. Save your API Key and Account ID to load channels automatically. If credentials are correct and this message persists, check the connection status indicator for error details.',
+			label: 'Step 2 — Load Channels',
+			value: 'Click Save above. Channels will load automatically from your Sardius account. Reopen this panel after saving to select channels.',
 		})
 	} else {
-		fields.push({
-			type: 'multidropdown',
-			id: 'activeChannelIds',
-			label: 'Active Channels for Cycle (leave empty to cycle all)',
-			width: 12,
-			default: [],
-			choices: channels.map((ch) => ({ id: ch.id, label: ch.name })),
-			minSelection: 0,
-		})
+		fields.push(
+			{
+				type: 'static-text',
+				id: 'step2_header',
+				width: 12,
+				label: `Step 2 — Channels (${channels.length} loaded)`,
+				value: 'Channels loaded successfully. Select which channels to include in the cycle, or leave empty to cycle through all of them.',
+			},
+			{
+				type: 'multidropdown',
+				id: 'activeChannelIds',
+				label: 'Active Channels for Cycle',
+				width: 12,
+				default: [],
+				choices: channels.map((ch) => ({ id: ch.id, label: ch.name })),
+				minSelection: 0,
+				tooltip: 'Leave empty to cycle through all channels. Select specific channels to limit the cycle.',
+			},
+		)
 	}
 
 	return fields
