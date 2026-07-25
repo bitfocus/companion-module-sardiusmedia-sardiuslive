@@ -39,7 +39,7 @@ export function getConfigFields(channels: { id: string; name: string }[] = []): 
 			id: 'channels_hint',
 			width: 12,
 			label: 'Channels',
-			value: 'Save your API Key and Account ID, then reopen settings to select which channels to include in the cycle.',
+			value: 'No channels loaded. Save your API Key and Account ID to load channels automatically. If credentials are correct and this message persists, check the connection status indicator for error details.',
 		})
 	} else {
 		fields.push({

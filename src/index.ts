@@ -40,7 +40,6 @@ export default class SardiusMediaInstance extends InstanceBase<SardiusInstanceTy
 
 	async init(config: ModuleConfig, _isFirstInit: boolean, _secrets: undefined): Promise<void> {
 		this.config = config
-		this.updateStatus(InstanceStatus.Ok)
 		this.updateActions()
 		this.updateVariables()
 		this.updateFeedbacks()
@@ -56,7 +55,6 @@ export default class SardiusMediaInstance extends InstanceBase<SardiusInstanceTy
 
 	async configUpdated(config: ModuleConfig, _secrets: undefined): Promise<void> {
 		this.config = config
-		this.updateStatus(InstanceStatus.Ok)
 		this.updateActions()
 		this.updateVariables()
 		this.updateFeedbacks()
@@ -106,7 +104,11 @@ export default class SardiusMediaInstance extends InstanceBase<SardiusInstanceTy
 	}
 
 	async loadChannels(): Promise<void> {
-		if (!this.config.apiKey || !this.config.accountId) return
+		if (!this.config.apiKey || !this.config.accountId) {
+			this.updateStatus(InstanceStatus.BadConfig, 'API Key and Account ID are required')
+			return
+		}
+		this.updateStatus(InstanceStatus.Connecting)
 		try {
 			const sites = await getSites(this.config.apiKey, this.config.accountId)
 			this.channels = sites
@@ -114,11 +116,15 @@ export default class SardiusMediaInstance extends InstanceBase<SardiusInstanceTy
 			if (this.channels.length > 0) {
 				this.updateSelectedChannelVariables()
 				this.checkFeedbacks('selected_channel_display')
+				this.updateStatus(InstanceStatus.Ok)
+			} else {
+				this.updateStatus(InstanceStatus.UnknownWarning, 'No channels found — verify your Account ID is correct')
 			}
-			this.updateStatus(InstanceStatus.Ok)
 		} catch (err) {
-			this.log('error', `Failed to load channels: ${err instanceof Error ? err.message : String(err)}`)
-			this.updateStatus(InstanceStatus.BadConfig, 'Failed to load channels — check API Key and Account ID')
+			this.channels = []
+			const message = err instanceof Error ? err.message : String(err)
+			this.log('error', `Failed to load channels: ${message}`)
+			this.updateStatus(InstanceStatus.AuthenticationFailure, 'Failed to load channels — check your API Key and Account ID')
 		}
 	}
 
