@@ -3,19 +3,17 @@ import { JsonObject, SomeCompanionConfigField } from '@companion-module/base'
 export interface ModuleConfig extends JsonObject {
 	apiKey: string
 	accountId: string
-	channelList: string
 	activeChannelIds: string[]
 }
 
 export function getConfigFields(channels: { id: string; name: string }[] = []): SomeCompanionConfigField[] {
-	const channelChoices = channels.map((ch) => ({ id: ch.id, label: ch.name }))
-	return [
+	const fields: SomeCompanionConfigField[] = [
 		{
 			type: 'static-text',
 			id: 'info',
 			width: 12,
 			label: 'Information',
-			value: 'Enter your API Key and Account ID, then add your channels below. Use the cycle actions to switch between channels — all feedback and event actions follow the selected channel.',
+			value: 'Enter your API Key and Account ID. Channels are loaded automatically from your Sardius account. Use the cycle actions to switch between channels — all feedback and event actions follow the selected channel.',
 		},
 		{
 			type: 'textinput',
@@ -33,22 +31,27 @@ export function getConfigFields(channels: { id: string; name: string }[] = []): 
 			minLength: 1,
 			default: '',
 		},
-		{
-			type: 'textinput',
-			id: 'channelList',
-			label: 'Channels (Name:ID, comma separated)',
+	]
+
+	if (channels.length === 0) {
+		fields.push({
+			type: 'static-text',
+			id: 'channels_hint',
 			width: 12,
-			default: '',
-			tooltip: 'e.g. Main Channel:site_abc123, Social Media Channel:site_def456',
-		},
-		{
+			label: 'Channels',
+			value: 'Save your API Key and Account ID, then reopen settings to select which channels to include in the cycle.',
+		})
+	} else {
+		fields.push({
 			type: 'multidropdown',
 			id: 'activeChannelIds',
 			label: 'Active Channels for Cycle (leave empty to cycle all)',
 			width: 12,
 			default: [],
-			choices: channelChoices,
+			choices: channels.map((ch) => ({ id: ch.id, label: ch.name })),
 			minSelection: 0,
-		},
-	]
+		})
+	}
+
+	return fields
 }

@@ -3,7 +3,7 @@ import { getConfigFields, ModuleConfig } from './config.js'
 import { getActions, Channel } from './actions.js'
 import { getFeedbacks, ChannelState } from './feedbacks.js'
 import { getVariables } from './variables.js'
-import { getCurrentEvent } from './api.js'
+import { getCurrentEvent, getSites } from './api.js'
 import moment from 'moment'
 
 const POLL_INTERVAL = 5000
@@ -28,7 +28,6 @@ export default class SardiusMediaInstance extends InstanceBase<SardiusInstanceTy
 	config: ModuleConfig = {
 		apiKey: '',
 		accountId: '',
-		channelList: '',
 		activeChannelIds: [],
 	}
 
@@ -47,7 +46,7 @@ export default class SardiusMediaInstance extends InstanceBase<SardiusInstanceTy
 		this.updateFeedbacks()
 		this.startPolling()
 		this.startCountdown()
-		this.parseChannels()
+		await this.loadChannels()
 	}
 
 	async destroy(): Promise<void> {
@@ -65,7 +64,7 @@ export default class SardiusMediaInstance extends InstanceBase<SardiusInstanceTy
 		this.stopCountdown()
 		this.startPolling()
 		this.startCountdown()
-		this.parseChannels()
+		await this.loadChannels()
 	}
 
 	getConfigFields() {
@@ -106,26 +105,20 @@ export default class SardiusMediaInstance extends InstanceBase<SardiusInstanceTy
 		this.setFeedbackDefinitions(feedbacks)
 	}
 
-	parseChannels(): void {
-		const raw = this.config.channelList || ''
-		this.channels = raw
-			.split(',')
-			.map((s) => s.trim())
-			.filter(Boolean)
-			.map((entry) => {
-				const colonIdx = entry.indexOf(':')
-				if (colonIdx > 0) {
-					return {
-						name: entry.slice(0, colonIdx).trim(),
-						id: entry.slice(colonIdx + 1).trim(),
-					}
-				}
-				return { id: entry, name: entry }
-			})
-		this.selectedChannelIndex = 0
-		if (this.channels.length > 0) {
-			this.updateSelectedChannelVariables()
-			this.checkFeedbacks('selected_channel_display')
+	async loadChannels(): Promise<void> {
+		if (!this.config.apiKey || !this.config.accountId) return
+		try {
+			const sites = await getSites(this.config.apiKey, this.config.accountId)
+			this.channels = sites
+			this.selectedChannelIndex = 0
+			if (this.channels.length > 0) {
+				this.updateSelectedChannelVariables()
+				this.checkFeedbacks('selected_channel_display')
+			}
+			this.updateStatus(InstanceStatus.Ok)
+		} catch (err) {
+			this.log('error', `Failed to load channels: ${err instanceof Error ? err.message : String(err)}`)
+			this.updateStatus(InstanceStatus.BadConfig, 'Failed to load channels — check API Key and Account ID')
 		}
 	}
 
