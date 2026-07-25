@@ -1,6 +1,6 @@
 {
 	"name": "companion-module-sardius-media",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "Bitfocus Companion module for Sardius Media live event control",
 	"main": "dist/index.js",
 	"type": "module",
