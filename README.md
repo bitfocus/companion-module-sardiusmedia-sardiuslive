@@ -6,8 +6,9 @@ Bitfocus Companion module for [Sardius Live](https://sardius.media) — control 
 
 - **API Key** — Your Sardius Stream Deck API key.
 - **Account ID** — Your Sardius account identifier.
-- **Channels** — Comma-separated list of channels in `Name:ID` format (e.g. `Main Stage:site_abc123, Social Feed:site_def456`).
-- **Active Channels for Cycle** — Optionally limit which channels the cycle buttons step through. Leave empty to cycle all channels in the list.
+- **Active Channels for Cycle** — Appears after channels load. Optionally limit which channels the cycle buttons step through. Leave empty to cycle all channels in your account.
+
+Channels are loaded automatically when you save your API Key and Account ID. Reopen settings after saving to see and select channels. If the connection shows an error status, check that your credentials are correct.
 
 ## Actions
 
@@ -51,15 +52,24 @@ Shows the name of the currently selected channel in the cycle list.
 
 ## Troubleshooting
 
-1. Verify your API Key and Account ID are correct.
-2. Channels must be entered in `Name:ID` format — check for typos in the ID portion.
-3. Add/Subtract Time and End Event only work when a live event is active on that channel.
-4. Go Live only works when no live event is currently active on that channel.
+1. **AuthenticationFailure status** — API Key or Account ID is incorrect. Update and save.
+2. **No channels found (warning status)** — Credentials are valid but no channels returned. Verify your Account ID.
+3. **Channels not showing in settings** — Save credentials first, then reopen the settings panel.
+4. **Add/Subtract Time and End Event** only work when a live event is active on that channel.
+5. **Go Live** only works when no live event is currently active on that channel.
 
 ## Support
 
 For issues: https://github.com/bitfocus/companion-module-sardiusmedia-sardiuslive/issues
 
+## Development
+
+```bash
+npm install
+npm run build       # compile TypeScript
+npm run dev         # watch mode
+npm run package     # build distributable .tgz
+```
 
 ## License
 

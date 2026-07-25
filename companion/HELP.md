@@ -1,19 +1,22 @@
 # Sardius Live
 
-Control Sardius Media live events directly from Bitfocus Companion.
+Control Sardius Live events directly from Bitfocus Companion.
 
 ## Configuration
 
-- **API Key** — Your Sardius Stream Deck API key. Used for all event mutations and channel name lookups.
+- **API Key** — Your Sardius Stream Deck API key.
 - **Account ID** — Your Sardius account identifier.
-- **Channels** — Comma-separated list of channels in `Name:ID` format (e.g. `Main Stage:site_abc123, Social Feed:site_def456`).
-- **Active Channels for Cycle** — Optionally limit which channels the cycle buttons step through. Leave empty to cycle all channels in the list.
+- **Active Channels for Cycle** — Appears after channels are loaded. Optionally limit which channels the cycle buttons step through. Leave empty to cycle all channels in your account.
+
+Channels are loaded automatically when you save your API Key and Account ID. Reopen settings after saving to see and select channels.
+
+If the connection shows an error or warning status, check that your API Key and Account ID are correct.
 
 ## Actions
 
 ### Cycle Channel (Next / Previous)
 
-Steps forward or backward through your channel list. All feedback and event actions that use the selected channel will update automatically.
+Steps forward or backward through your channel list. All feedback and event actions that use the selected channel update automatically.
 
 ### Go Live
 
@@ -50,14 +53,15 @@ Button lights up when a channel has an active live event. Shows the event title,
 
 ### Selected Channel Display
 
-Shows the name and position of the currently selected channel in the cycle list (e.g. `Main Stage 2/5`).
+Shows the name of the currently selected channel in the cycle list.
 
 ## Troubleshooting
 
-1. Verify your API Key and Account ID are correct.
-2. Make sure your Channel IDs are valid — names will show as raw IDs if the lookup fails.
-3. Add/Subtract Time and End Event only work when a live event is active on that channel.
-4. Go Live only works when no live event is currently active.
+1. **Connection shows AuthenticationFailure** — Your API Key or Account ID is incorrect. Update them and save.
+2. **Connection shows UnknownWarning / No channels found** — API Key is valid but no channels were returned. Verify your Account ID is correct.
+3. **Channels not showing in settings** — Save your credentials first, then reopen the settings panel.
+4. **Add/Subtract Time and End Event** only work when a live event is active on that channel.
+5. **Go Live** only works when no live event is currently active on that channel.
 
 ## Support
 
