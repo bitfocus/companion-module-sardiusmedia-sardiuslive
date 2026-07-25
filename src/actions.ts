@@ -8,14 +8,21 @@ export interface Channel {
 	name: string
 }
 
-const channelIdOption = {
-	type: 'textinput' as const,
-	id: 'channelId',
-	label: 'Channel ID (leave blank to use selected channel)',
-	default: '',
+function channelDropdown(channels: Channel[]) {
+	return {
+		type: 'dropdown' as const,
+		id: 'channelId',
+		label: 'Channel',
+		default: '',
+		choices: [
+			{ id: '', label: '— Use selected channel —' },
+			...channels.map((ch) => ({ id: ch.id, label: ch.name })),
+		],
+	}
 }
 
 export function getActions(
+	channels: Channel[],
 	getConfig: () => ModuleConfig,
 	log: (level: LogLevel, message: string) => void,
 	onEventChanged: (channelId: string) => void,
@@ -43,7 +50,7 @@ export function getActions(
 			name: 'Add Time to Event',
 			description: 'Adds time to the currently active live event',
 			options: [
-				channelIdOption,
+				channelDropdown(channels),
 				{
 					type: 'number',
 					id: 'minutes',
@@ -58,7 +65,7 @@ export function getActions(
 				const channelId = String(action.options.channelId) || getSelectedChannel('get')?.id || ''
 				const minutes = Number(action.options.minutes) || 5
 				if (!config.apiKey) { log('error', 'API Key is not configured'); return }
-				if (!channelId) { log('error', 'Channel ID is not configured'); return }
+				if (!channelId) { log('error', 'No channel selected'); return }
 				try {
 					const currentEvent = await getCurrentEvent(config.accountId, channelId)
 					if (!currentEvent) { log('warn', 'No live event found'); return }
@@ -76,7 +83,7 @@ export function getActions(
 			name: 'Subtract Time from Event',
 			description: 'Subtracts time from the currently active live event',
 			options: [
-				channelIdOption,
+				channelDropdown(channels),
 				{
 					type: 'number',
 					id: 'minutes',
@@ -91,7 +98,7 @@ export function getActions(
 				const channelId = String(action.options.channelId) || getSelectedChannel('get')?.id || ''
 				const minutes = Number(action.options.minutes) || 5
 				if (!config.apiKey) { log('error', 'API Key is not configured'); return }
-				if (!channelId) { log('error', 'Channel ID is not configured'); return }
+				if (!channelId) { log('error', 'No channel selected'); return }
 				try {
 					const currentEvent = await getCurrentEvent(config.accountId, channelId)
 					if (!currentEvent) { log('warn', 'No live event found'); return }
@@ -109,7 +116,7 @@ export function getActions(
 			name: 'Go Live (Create Event)',
 			description: 'Creates a new 1-hour live event on the specified channel',
 			options: [
-				channelIdOption,
+				channelDropdown(channels),
 				{
 					type: 'textinput',
 					id: 'eventName',
@@ -123,7 +130,7 @@ export function getActions(
 				const channelId = String(action.options.channelId) || getSelectedChannel('get')?.id || ''
 				const eventName = String(action.options.eventName) || 'Live Event'
 				if (!config.apiKey) { log('error', 'API Key is not configured'); return }
-				if (!channelId) { log('error', 'Channel ID is not configured'); return }
+				if (!channelId) { log('error', 'No channel selected'); return }
 				try {
 					const currentEvent = await getCurrentEvent(config.accountId, channelId)
 					if (currentEvent) { log('warn', 'There is already an active live event'); return }
@@ -159,12 +166,12 @@ export function getActions(
 		end_event: {
 			name: 'End Event',
 			description: 'Ends the currently active live event. Recommended: configure as press-and-hold (2-5 seconds) to prevent accidental activation.',
-			options: [channelIdOption],
+			options: [channelDropdown(channels)],
 			callback: async (action: CompanionActionEvent, _context: CompanionActionCallbackContext) => {
 				const config = getConfig()
 				const channelId = String(action.options.channelId) || getSelectedChannel('get')?.id || ''
 				if (!config.apiKey) { log('error', 'API Key is not configured'); return }
-				if (!config.accountId || !channelId) { log('error', 'Account ID or Channel ID is not configured'); return }
+				if (!channelId) { log('error', 'No channel selected'); return }
 				try {
 					const currentEvent = await getCurrentEvent(config.accountId, channelId)
 					if (!currentEvent) { log('warn', 'No active live event to end'); return }

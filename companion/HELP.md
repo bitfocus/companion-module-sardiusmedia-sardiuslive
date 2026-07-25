@@ -23,7 +23,7 @@ Steps forward or backward through your channel list. All feedback and event acti
 Creates a new live event on the selected (or configured) channel. Does nothing if a live event is already active.
 
 **Options:**
-- **Channel ID** — Leave blank to use the currently selected channel.
+- **Channel** — Choose a channel from the list, or select "Use selected channel" to follow the active cycle selection.
 - **Event Name** — Title for the new event.
 
 ### Add Time / Subtract Time
@@ -31,7 +31,7 @@ Creates a new live event on the selected (or configured) channel. Does nothing i
 Extends or shortens the end time of the currently active event.
 
 **Options:**
-- **Channel ID** — Leave blank to use the currently selected channel.
+- **Channel** — Choose a channel from the list, or select "Use selected channel" to follow the active cycle selection.
 - **Minutes** — Number of minutes to add or subtract (default: 5).
 
 ### End Event
@@ -39,7 +39,7 @@ Extends or shortens the end time of the currently active event.
 Ends the active live event immediately by setting its end time to now.
 
 **Options:**
-- **Channel ID** — Leave blank to use the currently selected channel.
+- **Channel** — Choose a channel from the list, or select "Use selected channel" to follow the active cycle selection.
 
 ### Open Control Panel
 
@@ -49,7 +49,10 @@ Opens `https://cp.sardius.media` in your default browser.
 
 ### Live Event Active
 
-Button lights up when a channel has an active live event. Shows the event title, a live indicator, and a countdown to the event end time.
+Button lights up when a channel has an active live event. Shows the channel name, a live indicator, and a countdown to the event end time.
+
+**Options:**
+- **Channel** — Choose a specific channel, or select "Use selected channel" to follow the active cycle selection.
 
 ### Selected Channel Display
 
@@ -58,8 +61,8 @@ Shows the name of the currently selected channel in the cycle list.
 ## Troubleshooting
 
 1. **Connection shows AuthenticationFailure** — Your API Key or Account ID is incorrect. Update them and save.
-2. **Connection shows UnknownWarning / No channels found** — API Key is valid but no channels were returned. Verify your Account ID is correct.
-3. **Channels not showing in settings** — Save your credentials first, then reopen the settings panel.
+2. **Connection shows No channels found** — API Key is valid but no channels were returned. Verify your Account ID is correct.
+3. **Channel dropdown is empty** — Channels haven't loaded yet. Save your credentials first, then reopen the settings panel. The dropdown in actions and feedbacks will populate automatically.
 4. **Add/Subtract Time and End Event** only work when a live event is active on that channel.
 5. **Go Live** only works when no live event is currently active on that channel.
 

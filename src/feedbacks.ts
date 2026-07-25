@@ -25,6 +25,7 @@ function formatCountdown(eventEndTime: string | null | undefined): string {
 }
 
 export function getFeedbacks(
+	channels: Channel[],
 	getChannelState: (channelId: string) => ChannelState | undefined,
 	getSelectedChannel: () => Channel | null,
 ): CompanionFeedbackDefinitions {
@@ -33,15 +34,36 @@ export function getFeedbacks(
 			type: 'advanced',
 			name: 'Selected Channel Display',
 			description: 'Updates the button to show the currently selected channel name',
-			options: [],
-			affectedProperties: ['text', 'bgcolor', 'color'],
-			callback: (_feedback: CompanionFeedbackAdvancedEvent, _context: CompanionFeedbackCallbackContext) => {
-				const channel = getSelectedChannel()
-				if (!channel) return { text: 'No Channel', size: '14' }
+			options: [
+				{
+					type: 'dropdown',
+					id: 'channelId',
+					label: 'Channel',
+					default: '',
+					choices: [
+						{ id: '', label: '— Use selected channel —' },
+						...channels.map((ch) => ({ id: ch.id, label: ch.name })),
+					],
+				},
+				{
+					type: 'textinput',
+					id: 'customLabel',
+					label: 'Custom Label (optional)',
+					default: '',
+					tooltip: 'Leave blank to show the channel name from Sardius.',
+				},
+			],
+			affectedProperties: ['text', 'bgcolor', 'color', 'size'],
+			callback: (feedback: CompanionFeedbackAdvancedEvent, _context: CompanionFeedbackCallbackContext) => {
+				const selected = getSelectedChannel()
+				const channelId = String(feedback.options.channelId) || selected?.id
+				if (!channelId) return { text: 'No Channel', size: '14' }
+				const resolvedChannel = channels.find((ch) => ch.id === channelId) ?? selected
+				const label = String(feedback.options.customLabel ?? '').trim() || (resolvedChannel?.name ?? channelId)
 				return {
 					bgcolor: combineRgb(0, 102, 204),
 					color: combineRgb(255, 255, 255),
-					text: channel.name,
+					text: label.length > 13 ? label.slice(0, 12) + '…' : label,
 					size: '14',
 				}
 			},
@@ -49,16 +71,27 @@ export function getFeedbacks(
 		live_event_active: {
 			type: 'advanced',
 			name: 'Live Event Active',
-			description: 'Changes button to green with channel name and countdown when there is an active live event. Leave Channel ID blank to follow the selected channel.',
+			description: 'Changes button to green with channel name and countdown when there is an active live event. Leave Channel blank to follow the selected channel.',
 			options: [
 				{
-					type: 'textinput',
+					type: 'dropdown',
 					id: 'channelId',
-					label: 'Channel ID (leave blank to use selected channel)',
+					label: 'Channel',
 					default: '',
+					choices: [
+						{ id: '', label: '— Use selected channel —' },
+						...channels.map((ch) => ({ id: ch.id, label: ch.name })),
+					],
+				},
+				{
+					type: 'textinput',
+					id: 'customLabel',
+					label: 'Custom Label (optional)',
+					default: '',
+					tooltip: 'Leave blank to show the channel name from Sardius.',
 				},
 			],
-			affectedProperties: ['text', 'bgcolor', 'color'],
+			affectedProperties: ['text', 'bgcolor', 'color', 'size'],
 			callback: (feedback: CompanionFeedbackAdvancedEvent, _context: CompanionFeedbackCallbackContext) => {
 				const channel = getSelectedChannel()
 				const channelId = String(feedback.options.channelId) || channel?.id
@@ -66,13 +99,13 @@ export function getFeedbacks(
 				const state = getChannelState(channelId)
 				if (!state?.hasLiveEvent) return {}
 				const countdown = formatCountdown(state.eventEndTime)
-				const channelName = channel?.name ?? channelId
-				const shortName = channelName.length > 10 ? channelName.slice(0, 9) + '…' : channelName
+				const resolvedChannel = channels.find((ch) => ch.id === channelId) ?? channel
+				const channelName = String(feedback.options.customLabel ?? '').trim() || (resolvedChannel?.name ?? channelId)
 				return {
 					bgcolor: combineRgb(0, 204, 0),
 					color: combineRgb(255, 255, 255),
-					text: `${shortName}\n● LIVE\n${countdown}`,
-					size: 'auto',
+					text: `${channelName.length > 13 ? channelName.slice(0, 12) + '…' : channelName}\n● LIVE\n${countdown}`,
+					size: '14',
 				}
 			},
 		},

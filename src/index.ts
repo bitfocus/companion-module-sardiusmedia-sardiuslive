@@ -77,6 +77,7 @@ export default class SardiusMediaInstance extends InstanceBase<SardiusInstanceTy
 
 	updateActions(): void {
 		const actions = getActions(
+			this.channels,
 			() => this.config,
 			(level, message) => this.log(level, message),
 			(channelId) => this.checkChannelStatus(channelId),
@@ -91,6 +92,7 @@ export default class SardiusMediaInstance extends InstanceBase<SardiusInstanceTy
 
 	updateFeedbacks(): void {
 		const feedbacks = getFeedbacks(
+			this.channels,
 			(channelId) => {
 				if (channelId && !this.trackedChannels.has(channelId)) {
 					this.trackedChannels.add(channelId)
@@ -113,6 +115,8 @@ export default class SardiusMediaInstance extends InstanceBase<SardiusInstanceTy
 			const sites = await getSites(this.config.apiKey, this.config.accountId)
 			this.channels = sites
 			this.selectedChannelIndex = 0
+			this.updateActions()
+			this.updateFeedbacks()
 			if (this.channels.length > 0) {
 				this.updateSelectedChannelVariables()
 				this.checkFeedbacks('selected_channel_display')

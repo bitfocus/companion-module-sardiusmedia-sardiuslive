@@ -8,7 +8,7 @@
 	"manufacturer": "Sardius Media",
 	"products": ["Sardius Live"],
 	"keywords": ["live", "streaming", "events", "broadcast"],
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"license": "MIT",
 	"repository": "git+https://github.com/bitfocus/companion-module-sardiusmedia-sardiuslive.git",
 	"bugs": "https://github.com/bitfocus/companion-module-sardiusmedia-sardiuslive/issues",

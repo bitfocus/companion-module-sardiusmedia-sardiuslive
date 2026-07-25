@@ -20,21 +20,21 @@ Steps forward or backward through your channel list. All feedback and event acti
 
 Creates a new live event on the selected (or configured) channel. Does nothing if a live event is already active.
 
-- **Channel ID** — Leave blank to use the currently selected channel.
+- **Channel** — Choose from the loaded channel list, or select "Use selected channel" to follow the active cycle selection.
 - **Event Name** — Title for the new event.
 
 ### Add Time / Subtract Time
 
 Extends or shortens the end time of the currently active event.
 
-- **Channel ID** — Leave blank to use the currently selected channel.
+- **Channel** — Choose from the loaded channel list, or select "Use selected channel" to follow the active cycle selection.
 - **Minutes** — Number of minutes to add or subtract (default: 5).
 
 ### End Event
 
 Ends the active live event immediately by setting its end time to now. Recommended: configure as press-and-hold (2–5 seconds) to prevent accidental activation.
 
-- **Channel ID** — Leave blank to use the currently selected channel.
+- **Channel** — Choose from the loaded channel list, or select "Use selected channel" to follow the active cycle selection.
 
 ### Open Control Panel
 
@@ -44,7 +44,9 @@ Opens `https://cp.sardius.media` in your default browser.
 
 ### Live Event Active
 
-Button lights up when a channel has an active live event. Shows the event title, a live indicator, and a countdown to the event end time.
+Button lights up when a channel has an active live event. Shows the channel name, a live indicator, and a countdown to the event end time.
+
+- **Channel** — Choose a specific channel, or select "Use selected channel" to follow the active cycle selection.
 
 ### Selected Channel Display
 
@@ -54,7 +56,7 @@ Shows the name of the currently selected channel in the cycle list.
 
 1. **AuthenticationFailure status** — API Key or Account ID is incorrect. Update and save.
 2. **No channels found (warning status)** — Credentials are valid but no channels returned. Verify your Account ID.
-3. **Channels not showing in settings** — Save credentials first, then reopen the settings panel.
+3. **Channel dropdown is empty in actions/feedbacks** — Save credentials first, then reopen settings. Dropdowns populate automatically after channels load.
 4. **Add/Subtract Time and End Event** only work when a live event is active on that channel.
 5. **Go Live** only works when no live event is currently active on that channel.
 
