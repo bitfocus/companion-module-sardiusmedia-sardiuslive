@@ -1,7 +1,7 @@
 {
 	"$schema": "../node_modules/@companion-module/base/assets/manifest.schema.json",
 	"type": "connection",
-	"id": "sardius-live",
+	"id": "sardiusmedia-sardiuslive",
 	"name": "Sardius Live",
 	"shortname": "Sardius",
 	"description": "Control Sardius Live events from Bitfocus Companion",
@@ -18,7 +18,7 @@
 			"email": "support@sardius.media"
 		}
 	],
-	"legacyIds": [],
+	"legacyIds": ["sardius-live"],
 	"runtime": {
 		"type": "node22",
 		"api": "nodejs-ipc",
