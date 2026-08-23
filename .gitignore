@@ -6,3 +6,4 @@ pkg/
 .DS_Store
 *.log
 .claude/
+package-lock.json

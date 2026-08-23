@@ -159,3 +159,21 @@ export function subtractMinutesFromEvent(event: SardiusEvent, minutes: number): 
 	const newEnd = moment(event.end).subtract(minutes, 'minutes').format()
 	return { ...event, end: newEnd }
 }
+
+/**
+ * Fetch the current live event, apply a transformation, persist it, and trigger a site update.
+ * Throws if there is no live event.
+ */
+export async function modifyCurrentEvent(
+	apiKey: string,
+	accountId: string,
+	channelId: string,
+	modifier: (event: SardiusEvent) => SardiusEvent,
+): Promise<SardiusEvent> {
+	const event = await getCurrentEvent(accountId, channelId)
+	if (!event) throw new Error('No live event found')
+	const updated = modifier(event)
+	await updateEvent(apiKey, accountId, channelId, event.id, updated)
+	await triggerSiteUpdate(apiKey, accountId, channelId)
+	return event
+}

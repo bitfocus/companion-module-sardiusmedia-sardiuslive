@@ -1,8 +1,9 @@
-import { InstanceBase, InstanceStatus, InstanceTypes } from '@companion-module/base'
+import { InstanceBase, InstanceStatus, InstanceTypes, CompanionPresetDefinitions, CompanionPresetSection } from '@companion-module/base'
 import { getConfigFields, ModuleConfig } from './config.js'
 import { getActions, Channel } from './actions.js'
 import { getFeedbacks, ChannelState } from './feedbacks.js'
 import { getVariables } from './variables.js'
+import { getPresets } from './presets.js'
 import { getCurrentEvent, getSites } from './api.js'
 import moment from 'moment'
 
@@ -32,20 +33,13 @@ export default class SardiusMediaInstance extends InstanceBase<SardiusInstanceTy
 	}
 
 	channelStates = new Map<string, ChannelState>()
-	trackedChannels = new Set<string>()
 	channels: Channel[] = []
 	selectedChannelIndex = 0
 	pollTimer: ReturnType<typeof setInterval> | null = null
 	countdownTimer: ReturnType<typeof setInterval> | null = null
 
 	async init(config: ModuleConfig, _isFirstInit: boolean, _secrets: undefined): Promise<void> {
-		this.config = config
-		this.updateActions()
-		this.updateVariables()
-		this.updateFeedbacks()
-		this.startPolling()
-		this.startCountdown()
-		await this.loadChannels()
+		await this.applyConfig(config)
 	}
 
 	async destroy(): Promise<void> {
@@ -54,10 +48,15 @@ export default class SardiusMediaInstance extends InstanceBase<SardiusInstanceTy
 	}
 
 	async configUpdated(config: ModuleConfig, _secrets: undefined): Promise<void> {
+		await this.applyConfig(config)
+	}
+
+	private async applyConfig(config: ModuleConfig): Promise<void> {
 		this.config = config
 		this.updateActions()
 		this.updateVariables()
 		this.updateFeedbacks()
+		this.updatePresets()
 		this.stopPolling()
 		this.stopCountdown()
 		this.startPolling()
@@ -90,17 +89,20 @@ export default class SardiusMediaInstance extends InstanceBase<SardiusInstanceTy
 		this.setVariableDefinitions(getVariables())
 	}
 
+	updatePresets(): void {
+		const { structure, presets } = getPresets(this.label)
+		this.setPresetDefinitions(
+			structure as unknown as CompanionPresetSection<SardiusInstanceTypes>[],
+			presets as unknown as CompanionPresetDefinitions<SardiusInstanceTypes>,
+		)
+	}
+
 	updateFeedbacks(): void {
 		const feedbacks = getFeedbacks(
 			this.channels,
-			(channelId) => {
-				if (channelId && !this.trackedChannels.has(channelId)) {
-					this.trackedChannels.add(channelId)
-					this.checkChannelStatus(channelId)
-				}
-				return this.channelStates.get(channelId)
-			},
+			(channelId) => this.channelStates.get(channelId),
 			() => this.handleSelectedChannel('get'),
+			this.label,
 		)
 		this.setFeedbackDefinitions(feedbacks)
 	}
@@ -117,6 +119,7 @@ export default class SardiusMediaInstance extends InstanceBase<SardiusInstanceTy
 			this.selectedChannelIndex = 0
 			this.updateActions()
 			this.updateFeedbacks()
+			this.updatePresets()
 			if (this.channels.length > 0) {
 				this.updateSelectedChannelVariables()
 				this.checkFeedbacks('selected_channel_display')
@@ -143,7 +146,7 @@ export default class SardiusMediaInstance extends InstanceBase<SardiusInstanceTy
 					: (this.selectedChannelIndex - 1 + len) % len
 			const channel = pool[this.selectedChannelIndex]
 			this.updateSelectedChannelVariables()
-			this.trackedChannels.add(channel.id)
+			this.updateCountdownVariables()
 			this.checkChannelStatus(channel.id)
 			this.checkFeedbacks('live_event_active')
 			this.checkFeedbacks('selected_channel_display')
@@ -165,9 +168,7 @@ export default class SardiusMediaInstance extends InstanceBase<SardiusInstanceTy
 	startPolling(): void {
 		if (this.pollTimer) return
 		this.pollTimer = setInterval(() => {
-			this.trackedChannels.forEach((channelId) => {
-				this.checkChannelStatus(channelId)
-			})
+			this.channels.forEach((ch) => this.checkChannelStatus(ch.id))
 		}, POLL_INTERVAL)
 	}
 
@@ -182,7 +183,6 @@ export default class SardiusMediaInstance extends InstanceBase<SardiusInstanceTy
 		if (this.countdownTimer) return
 		this.countdownTimer = setInterval(() => {
 			this.updateCountdownVariables()
-			this.checkFeedbacks('live_event_active')
 		}, COUNTDOWN_INTERVAL)
 	}
 
@@ -195,7 +195,6 @@ export default class SardiusMediaInstance extends InstanceBase<SardiusInstanceTy
 
 	async checkChannelStatus(channelId: string): Promise<void> {
 		if (!this.config.accountId || !channelId) return
-		this.trackedChannels.add(channelId)
 		try {
 			const currentEvent = await getCurrentEvent(this.config.accountId, channelId)
 			const hasLiveEvent = currentEvent !== null

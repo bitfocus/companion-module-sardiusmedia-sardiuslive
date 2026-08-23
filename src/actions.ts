@@ -1,6 +1,6 @@
 import { CompanionActionCallbackContext, CompanionActionDefinitions, CompanionActionEvent, LogLevel } from '@companion-module/base'
 import { exec } from 'child_process'
-import { getCurrentEvent, updateEvent, createEvent, triggerSiteUpdate, addMinutesToEvent, subtractMinutesFromEvent, endEventNow } from './api.js'
+import { getCurrentEvent, createEvent, triggerSiteUpdate, modifyCurrentEvent, addMinutesToEvent, subtractMinutesFromEvent, endEventNow } from './api.js'
 import { ModuleConfig } from './config.js'
 
 export interface Channel {
@@ -8,17 +8,48 @@ export interface Channel {
 	name: string
 }
 
-function channelDropdown(channels: Channel[]) {
-	return {
-		type: 'dropdown' as const,
-		id: 'channelId',
-		label: 'Channel',
-		default: '',
-		choices: [
-			{ id: '', label: '— Use selected channel —' },
-			...channels.map((ch) => ({ id: ch.id, label: ch.name })),
-		],
-	}
+/** Channel picker: checkbox defaults to "use selected channel"; dropdown shown only when unchecked. */
+function channelOptions(channels: Channel[]) {
+	return [
+		{
+			type: 'checkbox' as const,
+			id: 'useSelectedChannel',
+			label: 'Use selected channel',
+			default: true,
+			disableAutoExpression: true,
+		},
+		{
+			type: 'dropdown' as const,
+			id: 'channelId',
+			label: 'Channel',
+			default: '',
+			choices: [{ id: '', label: '— Select a channel —' }, ...channels.map((ch) => ({ id: ch.id, label: ch.name }))],
+			isVisibleExpression: '$(options:useSelectedChannel) == false',
+		},
+	]
+}
+
+function resolveChannelId(
+	options: { useSelectedChannel?: unknown; channelId?: unknown },
+	getSelectedChannel: (op: 'get') => Channel | null,
+): string {
+	return options.useSelectedChannel !== false
+		? (getSelectedChannel('get')?.id ?? '')
+		: String(options.channelId ?? '')
+}
+
+function guardAction(
+	config: ModuleConfig,
+	channelId: string,
+	log: (level: LogLevel, msg: string) => void,
+): boolean {
+	if (!config.apiKey) { log('error', 'API Key is not configured'); return false }
+	if (!channelId) { log('error', 'No channel selected'); return false }
+	return true
+}
+
+function errMsg(error: unknown): string {
+	return error instanceof Error ? error.message : 'Unknown error'
 }
 
 export function getActions(
@@ -50,7 +81,7 @@ export function getActions(
 			name: 'Add Time to Event',
 			description: 'Adds time to the currently active live event',
 			options: [
-				channelDropdown(channels),
+				...channelOptions(channels),
 				{
 					type: 'number',
 					id: 'minutes',
@@ -62,20 +93,15 @@ export function getActions(
 			],
 			callback: async (action: CompanionActionEvent, _context: CompanionActionCallbackContext) => {
 				const config = getConfig()
-				const channelId = String(action.options.channelId) || getSelectedChannel('get')?.id || ''
+				const channelId = resolveChannelId(action.options, getSelectedChannel)
 				const minutes = Number(action.options.minutes) || 5
-				if (!config.apiKey) { log('error', 'API Key is not configured'); return }
-				if (!channelId) { log('error', 'No channel selected'); return }
+				if (!guardAction(config, channelId, log)) return
 				try {
-					const currentEvent = await getCurrentEvent(config.accountId, channelId)
-					if (!currentEvent) { log('warn', 'No live event found'); return }
-					const updatedEvent = addMinutesToEvent(currentEvent, minutes)
-					await updateEvent(config.apiKey, config.accountId, channelId, currentEvent.id, updatedEvent)
-					await triggerSiteUpdate(config.apiKey, config.accountId, channelId)
-					log('info', `Added ${minutes} minutes to event "${currentEvent.title}"`)
+					const event = await modifyCurrentEvent(config.apiKey, config.accountId, channelId, (e) => addMinutesToEvent(e, minutes))
+					log('info', `Added ${minutes} minutes to event "${event.title}"`)
 					onEventChanged(channelId)
 				} catch (error) {
-					log('error', `Failed to add time: ${error instanceof Error ? error.message : 'Unknown error'}`)
+					log('error', errMsg(error))
 				}
 			},
 		},
@@ -83,7 +109,7 @@ export function getActions(
 			name: 'Subtract Time from Event',
 			description: 'Subtracts time from the currently active live event',
 			options: [
-				channelDropdown(channels),
+				...channelOptions(channels),
 				{
 					type: 'number',
 					id: 'minutes',
@@ -95,20 +121,15 @@ export function getActions(
 			],
 			callback: async (action: CompanionActionEvent, _context: CompanionActionCallbackContext) => {
 				const config = getConfig()
-				const channelId = String(action.options.channelId) || getSelectedChannel('get')?.id || ''
+				const channelId = resolveChannelId(action.options, getSelectedChannel)
 				const minutes = Number(action.options.minutes) || 5
-				if (!config.apiKey) { log('error', 'API Key is not configured'); return }
-				if (!channelId) { log('error', 'No channel selected'); return }
+				if (!guardAction(config, channelId, log)) return
 				try {
-					const currentEvent = await getCurrentEvent(config.accountId, channelId)
-					if (!currentEvent) { log('warn', 'No live event found'); return }
-					const updatedEvent = subtractMinutesFromEvent(currentEvent, minutes)
-					await updateEvent(config.apiKey, config.accountId, channelId, currentEvent.id, updatedEvent)
-					await triggerSiteUpdate(config.apiKey, config.accountId, channelId)
-					log('info', `Subtracted ${minutes} minutes from event "${currentEvent.title}"`)
+					const event = await modifyCurrentEvent(config.apiKey, config.accountId, channelId, (e) => subtractMinutesFromEvent(e, minutes))
+					log('info', `Subtracted ${minutes} minutes from event "${event.title}"`)
 					onEventChanged(channelId)
 				} catch (error) {
-					log('error', `Failed to subtract time: ${error instanceof Error ? error.message : 'Unknown error'}`)
+					log('error', errMsg(error))
 				}
 			},
 		},
@@ -116,7 +137,7 @@ export function getActions(
 			name: 'Go Live (Create Event)',
 			description: 'Creates a new 1-hour live event on the specified channel',
 			options: [
-				channelDropdown(channels),
+				...channelOptions(channels),
 				{
 					type: 'textinput',
 					id: 'eventName',
@@ -127,10 +148,9 @@ export function getActions(
 			],
 			callback: async (action: CompanionActionEvent, _context: CompanionActionCallbackContext) => {
 				const config = getConfig()
-				const channelId = String(action.options.channelId) || getSelectedChannel('get')?.id || ''
+				const channelId = resolveChannelId(action.options, getSelectedChannel)
 				const eventName = String(action.options.eventName) || 'Live Event'
-				if (!config.apiKey) { log('error', 'API Key is not configured'); return }
-				if (!channelId) { log('error', 'No channel selected'); return }
+				if (!guardAction(config, channelId, log)) return
 				try {
 					const currentEvent = await getCurrentEvent(config.accountId, channelId)
 					if (currentEvent) { log('warn', 'There is already an active live event'); return }
@@ -139,7 +159,7 @@ export function getActions(
 					log('info', `Created new event "${eventName}"`)
 					onEventChanged(channelId)
 				} catch (error) {
-					log('error', `Failed to create event: ${error instanceof Error ? error.message : 'Unknown error'}`)
+					log('error', errMsg(error))
 				}
 			},
 		},
@@ -166,22 +186,17 @@ export function getActions(
 		end_event: {
 			name: 'End Event',
 			description: 'Ends the currently active live event. Recommended: configure as press-and-hold (2-5 seconds) to prevent accidental activation.',
-			options: [channelDropdown(channels)],
+			options: channelOptions(channels),
 			callback: async (action: CompanionActionEvent, _context: CompanionActionCallbackContext) => {
 				const config = getConfig()
-				const channelId = String(action.options.channelId) || getSelectedChannel('get')?.id || ''
-				if (!config.apiKey) { log('error', 'API Key is not configured'); return }
-				if (!channelId) { log('error', 'No channel selected'); return }
+				const channelId = resolveChannelId(action.options, getSelectedChannel)
+				if (!guardAction(config, channelId, log)) return
 				try {
-					const currentEvent = await getCurrentEvent(config.accountId, channelId)
-					if (!currentEvent) { log('warn', 'No active live event to end'); return }
-					const endedEvent = endEventNow(currentEvent)
-					await updateEvent(config.apiKey, config.accountId, channelId, currentEvent.id, endedEvent)
-					await triggerSiteUpdate(config.apiKey, config.accountId, channelId)
-					log('info', `Ended event "${currentEvent.title}"`)
+					const event = await modifyCurrentEvent(config.apiKey, config.accountId, channelId, endEventNow)
+					log('info', `Ended event "${event.title}"`)
 					onEventChanged(channelId)
 				} catch (error) {
-					log('error', `Failed to end event: ${error instanceof Error ? error.message : 'Unknown error'}`)
+					log('error', errMsg(error))
 				}
 			},
 		},

@@ -12,18 +12,38 @@ Channels are loaded automatically when you save your API Key and Account ID. Reo
 
 If the connection shows an error or warning status, check that your API Key and Account ID are correct.
 
+## Presets
+
+The quickest way to get started. Open the **Presets** tab in the button editor and drag any preset onto your layout — each one arrives with the right action, style, and feedback already configured.
+
+### Event Control
+- **Go Live** — Green button. Creates a live event on the selected channel. Turns brighter green when the event is active (via Live Event Active feedback).
+- **End Event** — Red button. Requires a **2-second hold** to fire, preventing accidental activation.
+- **+5 Min** — Yellow button. Adds 5 minutes to the active event's end time.
+- **-5 Min** — Orange button. Subtracts 5 minutes from the active event's end time.
+
+### Channel Control
+- **Next Channel** — Steps forward through the channel cycle.
+- **Previous Channel** — Steps backward through the channel cycle.
+- **Channel Display** — Shows the active channel name. Highlights blue via Selected Channel Display feedback.
+
+### Monitoring
+- **Live Status** — Shows the active channel name, a live indicator, and a countdown. Turns green when a live event is active.
+
+---
+
 ## Actions
 
 ### Cycle Channel (Next / Previous)
 
-Steps forward or backward through your channel list. All feedback and event actions that use the selected channel update automatically.
+Steps forward or backward through your channel list. All feedbacks and event actions that use the selected channel update automatically.
 
 ### Go Live
 
-Creates a new live event on the selected (or configured) channel. Does nothing if a live event is already active.
+Creates a new live event on the selected channel. Does nothing if a live event is already active.
 
 **Options:**
-- **Channel** — Choose a channel from the list, or select "Use selected channel" to follow the active cycle selection.
+- **Use selected channel** — When checked, uses the currently cycled channel. Uncheck to pick a specific channel.
 - **Event Name** — Title for the new event.
 
 ### Add Time / Subtract Time
@@ -31,40 +51,64 @@ Creates a new live event on the selected (or configured) channel. Does nothing i
 Extends or shortens the end time of the currently active event.
 
 **Options:**
-- **Channel** — Choose a channel from the list, or select "Use selected channel" to follow the active cycle selection.
+- **Use selected channel** — When checked, uses the currently cycled channel. Uncheck to pick a specific channel.
 - **Minutes** — Number of minutes to add or subtract (default: 5).
 
 ### End Event
 
-Ends the active live event immediately by setting its end time to now.
+Ends the active live event immediately by setting its end time to now. When using the preset, this is configured as a 2-second hold to prevent accidental activation.
 
 **Options:**
-- **Channel** — Choose a channel from the list, or select "Use selected channel" to follow the active cycle selection.
+- **Use selected channel** — When checked, uses the currently cycled channel. Uncheck to pick a specific channel.
 
 ### Open Control Panel
 
 Opens `https://cp.sardius.media` in your default browser.
 
+---
+
 ## Feedbacks
 
 ### Live Event Active
 
-Button lights up when a channel has an active live event. Shows the channel name, a live indicator, and a countdown to the event end time.
+Highlights the button when the selected channel has an active live event.
+
+**Default button style** pre-fills with `● LIVE` and a short countdown (`$(connection:event_countdown_short)`) so you see remaining time directly on the button.
 
 **Options:**
-- **Channel** — Choose a specific channel, or select "Use selected channel" to follow the active cycle selection.
+- **Use selected channel** — When checked, watches the currently cycled channel. Uncheck to watch a specific channel.
 
 ### Selected Channel Display
 
-Shows the name of the currently selected channel in the cycle list.
+Highlights the button when a channel is currently selected in the cycle. The default button style pre-fills with `$(connection:selected_channel_name)` so the button always shows the active channel name.
+
+No additional options — this feedback simply reflects whether a channel is active in the cycle.
+
+---
+
+## Variables
+
+| Variable | Description |
+|---|---|
+| `$(connection:selected_channel_id)` | ID of the currently selected channel |
+| `$(connection:selected_channel_name)` | Name of the currently selected channel |
+| `$(connection:event_title)` | Title of the active live event |
+| `$(connection:event_end_time)` | Scheduled end time of the active event (e.g. `3:00 PM`) |
+| `$(connection:event_countdown)` | Full countdown to event end (`HH:MM:SS`) |
+| `$(connection:event_countdown_short)` | Compact countdown — omits hours when under 1 hour (`MM:SS`) |
+
+Replace `connection` with your actual connection name as configured in Companion (e.g. `$(sardius-live:selected_channel_name)`).
+
+---
 
 ## Troubleshooting
 
 1. **Connection shows AuthenticationFailure** — Your API Key or Account ID is incorrect. Update them and save.
-2. **Connection shows No channels found** — API Key is valid but no channels were returned. Verify your Account ID is correct.
-3. **Channel dropdown is empty** — Channels haven't loaded yet. Save your credentials first, then reopen the settings panel. The dropdown in actions and feedbacks will populate automatically.
+2. **Connection shows No channels found** — API Key is valid but no channels were returned. Verify your Account ID.
+3. **Channel dropdown is empty** — Channels haven't loaded yet. Save your credentials first, then reopen the settings panel. Dropdowns populate automatically after channels load.
 4. **Add/Subtract Time and End Event** only work when a live event is active on that channel.
 5. **Go Live** only works when no live event is currently active on that channel.
+6. **Presets not visible** — Disconnect and reconnect the module in Companion settings, then check the Presets tab.
 
 ## Support
 
