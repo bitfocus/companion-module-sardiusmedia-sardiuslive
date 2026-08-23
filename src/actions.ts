@@ -1,11 +1,14 @@
 import { CompanionActionCallbackContext, CompanionActionDefinitions, CompanionActionEvent, LogLevel } from '@companion-module/base'
 import { exec } from 'child_process'
-import { getCurrentEvent, createEvent, triggerSiteUpdate, modifyCurrentEvent, addMinutesToEvent, subtractMinutesFromEvent, endEventNow } from './api.js'
+import { getCurrentEvent, createEvent, getSites, triggerSiteUpdate, modifyCurrentEvent, addMinutesToEvent, subtractMinutesFromEvent, endEventNow } from './api.js'
 import { ModuleConfig } from './config.js'
 
 export interface Channel {
 	id: string
 	name: string
+	playerType?: string
+	videoSource?: string
+	liveDefaults?: Record<string, unknown>
 }
 
 /** Channel picker: checkbox defaults to "use selected channel"; dropdown shown only when unchecked. */
@@ -154,7 +157,10 @@ export function getActions(
 				try {
 					const currentEvent = await getCurrentEvent(config.accountId, channelId)
 					if (currentEvent) { log('warn', 'There is already an active live event'); return }
-					await createEvent(config.apiKey, config.accountId, channelId, eventName)
+					// Fetch fresh channel config so we always use the latest live defaults
+					const freshChannels = await getSites(config.apiKey, config.accountId)
+					const channelConfig = freshChannels.find((ch) => ch.id === channelId)
+					await createEvent(config.apiKey, config.accountId, channelId, eventName, channelConfig)
 					await triggerSiteUpdate(config.apiKey, config.accountId, channelId)
 					log('info', `Created new event "${eventName}"`)
 					onEventChanged(channelId)

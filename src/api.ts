@@ -28,7 +28,10 @@ export async function getCurrentEvent(accountId: string, channelId: string): Pro
 	return null
 }
 
-export async function getSites(apiKey: string, accountId: string): Promise<{ id: string; name: string }[]> {
+export async function getSites(
+	apiKey: string,
+	accountId: string,
+): Promise<{ id: string; name: string; playerType?: string; videoSource?: string; liveDefaults?: Record<string, unknown> }[]> {
 	const url = `${API_BASE}/sites/${accountId}`
 	const response = await axios({
 		url,
@@ -43,8 +46,16 @@ export async function getSites(apiKey: string, accountId: string): Promise<{ id:
 			: []
 	return items
 		.map((site: unknown) => {
-			const s = site as Record<string, string>
-			return { id: s.pk ?? s.id ?? s.siteId ?? '', name: s.name ?? s.siteName ?? s.pk ?? '' }
+			const s = site as Record<string, unknown>
+			const live = s.live as Record<string, unknown> | undefined
+			const video = s.video as Record<string, string> | undefined
+			return {
+				id: String(s.pk ?? s.id ?? s.siteId ?? ''),
+				name: String(s.name ?? s.siteName ?? s.pk ?? ''),
+				playerType: typeof s.playerType === 'string' ? s.playerType : undefined,
+				videoSource: video?.source ?? String(s.pk ?? ''),
+				liveDefaults: live?.defaults as Record<string, unknown> | undefined,
+			}
 		})
 		.filter((s) => s.id)
 		.sort((a, b) => a.name.localeCompare(b.name))
@@ -71,6 +82,7 @@ export async function createEvent(
 	accountId: string,
 	channelId: string,
 	eventName: string,
+	channelConfig?: { playerType?: string; videoSource?: string; liveDefaults?: Record<string, unknown> },
 ): Promise<void> {
 	const url = `${API_BASE}/calendars/${accountId}/${channelId}/events`
 	const eventStart = moment().format()
@@ -95,6 +107,14 @@ export async function createEvent(
 					performers: [],
 					bios: [],
 				},
+				metadata: {},
+				album: '',
+				categories: [],
+				languages: [],
+				series: '',
+				tags: [],
+				title: '',
+				topics: [],
 			},
 			autoApprove: false,
 			autoPublish: false,
@@ -108,11 +128,11 @@ export async function createEvent(
 		},
 		settings: {
 			clearDVR: false,
-			eventPlayerId: 'dvr',
+			eventPlayerId: channelConfig?.playerType ?? 'dvr',
 			experiences: {
 				access_default: {
 					video: {
-						source: channelId,
+						source: channelConfig?.videoSource ?? channelId,
 						type: 'assetUID',
 					},
 				},
@@ -122,9 +142,10 @@ export async function createEvent(
 				autoPublish: false,
 				defaultProfile: 'hls',
 			},
-			keepPrePost: false,
-			keepVOD: true,
+			excludePrePost: false,
+			keepVOD: false,
 			deleteAssetInDays: 0,
+			...(channelConfig?.liveDefaults ? { live: channelConfig.liveDefaults } : {}),
 		},
 	}
 	await axios({
