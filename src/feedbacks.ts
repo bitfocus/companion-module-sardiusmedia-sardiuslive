@@ -12,6 +12,7 @@ export function getFeedbacks(
 	getChannelState: (channelId: string) => ChannelState | undefined,
 	getSelectedChannel: () => Channel | null,
 	instanceLabel: string,
+	getHasError: () => boolean,
 ): CompanionFeedbackDefinitions {
 	return {
 		selected_channel_display: {
@@ -23,7 +24,7 @@ export function getFeedbacks(
 				bgcolor: combineRgb(0, 102, 204),
 				color: combineRgb(255, 255, 255),
 				text: `$(${instanceLabel}:selected_channel_name)`,
-				size: '14',
+				size: 'auto',
 			},
 			callback: (_feedback: CompanionFeedbackBooleanEvent, _context: CompanionFeedbackCallbackContext) => {
 				return getSelectedChannel() !== null
@@ -54,7 +55,7 @@ export function getFeedbacks(
 				bgcolor: combineRgb(0, 204, 0),
 				color: combineRgb(255, 255, 255),
 				text: `● LIVE\n$(${instanceLabel}:event_countdown_short)`,
-				size: '14',
+				size: 'auto',
 			},
 			callback: (feedback: CompanionFeedbackBooleanEvent, _context: CompanionFeedbackCallbackContext) => {
 				const channelId = feedback.options.useSelectedChannel
@@ -63,6 +64,21 @@ export function getFeedbacks(
 				if (!channelId) return false
 				const state = getChannelState(channelId)
 				return !!state?.hasLiveEvent
+			},
+		},
+		action_error: {
+			type: 'boolean',
+			name: 'Action Error',
+			description: 'Active when the last action failed. Add to a dedicated error display button to surface errors from any action.',
+			options: [],
+			defaultStyle: {
+				bgcolor: combineRgb(180, 0, 0),
+				color: combineRgb(255, 255, 255),
+				text: `$(${instanceLabel}:last_error)`,
+				size: 'auto',
+			},
+			callback: (_feedback: CompanionFeedbackBooleanEvent, _context: CompanionFeedbackCallbackContext) => {
+				return getHasError()
 			},
 		},
 	}

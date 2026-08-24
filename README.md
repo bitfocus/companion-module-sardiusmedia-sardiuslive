@@ -12,7 +12,7 @@ Channels are loaded automatically when you save your API Key and Account ID. Reo
 
 ## Presets
 
-The module ships 8 ready-to-use presets organized into three groups. Open the **Presets** tab in the Companion button editor and drag any preset onto your layout.
+The module ships 12 ready-to-use presets organized into three groups. Open the **Presets** tab in the Companion button editor and drag any preset onto your layout.
 
 ### Event Control
 | Preset | Style | Behavior |
@@ -21,6 +21,10 @@ The module ships 8 ready-to-use presets organized into three groups. Open the **
 | End Event | Red | **Requires a 2-second hold** to fire — prevents accidental activation. |
 | +5 Min | Yellow | Adds 5 minutes to the active event's end time. |
 | -5 Min | Orange | Subtracts 5 minutes from the active event's end time. |
+| +30 Min | Yellow | Adds 30 minutes to the active event's end time. |
+| -30 Min | Orange | Subtracts 30 minutes from the active event's end time. |
+| +60 Min | Yellow | Adds 60 minutes to the active event's end time. |
+| -60 Min | Orange | Subtracts 60 minutes from the active event's end time. |
 
 ### Channel Control
 | Preset | Style | Behavior |
@@ -29,10 +33,10 @@ The module ships 8 ready-to-use presets organized into three groups. Open the **
 | Previous Channel | Blue | Steps backward through the channel cycle. |
 | Channel Display | Black / Blue | Shows the active channel name. Highlights blue via Selected Channel Display feedback. |
 
-### Monitoring
+### Status
 | Preset | Style | Behavior |
 |---|---|---|
-| Live Status | Dark / Green | Shows channel name, live indicator, and event countdown. Turns green when live. |
+| Error Display | Dark / Red | Shows `✓ OK` normally. Turns red and displays the error message when any action fails. |
 
 ## Actions
 
@@ -80,6 +84,12 @@ Highlights the button when a channel is currently active in the cycle. Default b
 
 No additional options.
 
+### Action Error
+
+Active when the last action failed. Displays the error message on the button. Use this with the Error Display preset or add it to any button that should reflect error state.
+
+No additional options.
+
 ## Variables
 
 | Variable | Description |
@@ -90,6 +100,7 @@ No additional options.
 | `$(connection:event_end_time)` | Scheduled end time of the active event (e.g. `3:00 PM`) |
 | `$(connection:event_countdown)` | Full countdown to event end (`HH:MM:SS`) |
 | `$(connection:event_countdown_short)` | Compact countdown — omits hours when under 1 hour (`MM:SS`) |
+| `$(connection:last_error)` | Error message from the last failed action. Empty when no error. |
 
 Replace `connection` with your actual connection name as configured in Companion.
 
@@ -100,7 +111,8 @@ Replace `connection` with your actual connection name as configured in Companion
 3. **Channel dropdown is empty in actions/feedbacks** — Save credentials first, then reopen settings. Dropdowns populate automatically after channels load.
 4. **Add/Subtract Time and End Event** only work when a live event is active on that channel.
 5. **Go Live** only works when no live event is currently active on that channel.
-6. **Presets not visible** — Disconnect and reconnect the module in Companion, then check the Presets tab.
+6. **Error Display button turns red** — Check the error message on the button. Press any action button again to clear it once resolved.
+7. **Presets not visible** — Disconnect and reconnect the module in Companion, then check the Presets tab.
 
 ## Support
 
@@ -109,10 +121,9 @@ For issues: https://github.com/bitfocus/companion-module-sardiusmedia-sardiusliv
 ## Development
 
 ```bash
-npm install
-npm run build       # compile TypeScript
-npm run dev         # watch mode
-npm run package     # build distributable .tgz
+yarn install
+yarn build       # compile TypeScript
+yarn dev         # watch mode
 ```
 
 ## License

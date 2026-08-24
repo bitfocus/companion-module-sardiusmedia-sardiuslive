@@ -10,7 +10,7 @@ export function getPresets(instanceLabel: string): {
 			name: 'Go Live',
 			style: {
 				text: 'GO\nLIVE',
-				size: '18',
+				size: 'auto',
 				color: combineRgb(255, 255, 255),
 				bgcolor: combineRgb(0, 153, 0),
 			},
@@ -28,7 +28,7 @@ export function getPresets(instanceLabel: string): {
 						bgcolor: combineRgb(0, 204, 0),
 						color: combineRgb(255, 255, 255),
 						text: `● LIVE\n$(${instanceLabel}:event_countdown_short)`,
-						size: '14',
+						size: 'auto',
 					},
 				},
 			],
@@ -39,7 +39,7 @@ export function getPresets(instanceLabel: string): {
 			name: 'End Event',
 			style: {
 				text: 'END\nEVENT',
-				size: '18',
+				size: 'auto',
 				color: combineRgb(255, 255, 255),
 				bgcolor: combineRgb(102, 0, 0),
 			},
@@ -61,7 +61,7 @@ export function getPresets(instanceLabel: string): {
 			name: 'Add 5 Minutes',
 			style: {
 				text: '+5\nMIN',
-				size: '18',
+				size: 'auto',
 				color: combineRgb(0, 0, 0),
 				bgcolor: combineRgb(255, 204, 0),
 			},
@@ -79,7 +79,7 @@ export function getPresets(instanceLabel: string): {
 			name: 'Subtract 5 Minutes',
 			style: {
 				text: '-5\nMIN',
-				size: '18',
+				size: 'auto',
 				color: combineRgb(0, 0, 0),
 				bgcolor: combineRgb(255, 153, 0),
 			},
@@ -92,12 +92,84 @@ export function getPresets(instanceLabel: string): {
 			feedbacks: [],
 		},
 
+		add_time_30: {
+			type: 'simple',
+			name: 'Add 30 Minutes',
+			style: {
+				text: '+30\nMIN',
+				size: 'auto',
+				color: combineRgb(0, 0, 0),
+				bgcolor: combineRgb(255, 204, 0),
+			},
+			steps: [
+				{
+					down: [{ actionId: 'add_time', options: { useSelectedChannel: true, channelId: '', minutes: 30 } }],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		},
+
+		subtract_time_30: {
+			type: 'simple',
+			name: 'Subtract 30 Minutes',
+			style: {
+				text: '-30\nMIN',
+				size: 'auto',
+				color: combineRgb(0, 0, 0),
+				bgcolor: combineRgb(255, 153, 0),
+			},
+			steps: [
+				{
+					down: [{ actionId: 'subtract_time', options: { useSelectedChannel: true, channelId: '', minutes: 30 } }],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		},
+
+		add_time_60: {
+			type: 'simple',
+			name: 'Add 60 Minutes',
+			style: {
+				text: '+60\nMIN',
+				size: 'auto',
+				color: combineRgb(0, 0, 0),
+				bgcolor: combineRgb(255, 204, 0),
+			},
+			steps: [
+				{
+					down: [{ actionId: 'add_time', options: { useSelectedChannel: true, channelId: '', minutes: 60 } }],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		},
+
+		subtract_time_60: {
+			type: 'simple',
+			name: 'Subtract 60 Minutes',
+			style: {
+				text: '-60\nMIN',
+				size: 'auto',
+				color: combineRgb(0, 0, 0),
+				bgcolor: combineRgb(255, 153, 0),
+			},
+			steps: [
+				{
+					down: [{ actionId: 'subtract_time', options: { useSelectedChannel: true, channelId: '', minutes: 60 } }],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		},
+
 		cycle_next: {
 			type: 'simple',
 			name: 'Next Channel',
 			style: {
 				text: 'NEXT\nCH →',
-				size: '14',
+				size: 'auto',
 				color: combineRgb(255, 255, 255),
 				bgcolor: combineRgb(0, 51, 153),
 			},
@@ -115,7 +187,7 @@ export function getPresets(instanceLabel: string): {
 			name: 'Previous Channel',
 			style: {
 				text: '← CH\nPREV',
-				size: '14',
+				size: 'auto',
 				color: combineRgb(255, 255, 255),
 				bgcolor: combineRgb(0, 51, 153),
 			},
@@ -128,12 +200,36 @@ export function getPresets(instanceLabel: string): {
 			feedbacks: [],
 		},
 
+		error_display: {
+			type: 'simple',
+			name: 'Error Display',
+			style: {
+				text: '✓ OK',
+				size: 'auto',
+				color: combineRgb(100, 100, 100),
+				bgcolor: combineRgb(20, 20, 20),
+			},
+			steps: [{ down: [], up: [] }],
+			feedbacks: [
+				{
+					feedbackId: 'action_error',
+					options: {},
+					style: {
+						bgcolor: combineRgb(180, 0, 0),
+						color: combineRgb(255, 255, 255),
+						text: `$(${instanceLabel}:last_error)`,
+						size: 'auto',
+					},
+				},
+			],
+		},
+
 		channel_display: {
 			type: 'simple',
 			name: 'Channel Display',
 			style: {
 				text: `$(${instanceLabel}:selected_channel_name)`,
-				size: '14',
+				size: 'auto',
 				color: combineRgb(255, 255, 255),
 				bgcolor: combineRgb(0, 0, 0),
 			},
@@ -161,12 +257,17 @@ export function getPresets(instanceLabel: string): {
 		{
 			id: 'event_control',
 			name: 'Event Control',
-			definitions: ['go_live', 'end_event', 'add_time', 'subtract_time'],
+			definitions: ['go_live', 'end_event', 'add_time', 'subtract_time', 'add_time_30', 'subtract_time_30', 'add_time_60', 'subtract_time_60'],
 		},
 		{
 			id: 'channel_control',
 			name: 'Channel Control',
 			definitions: ['cycle_next', 'cycle_prev', 'channel_display'],
+		},
+		{
+			id: 'status',
+			name: 'Status',
+			definitions: ['error_display'],
 		},
 	]
 

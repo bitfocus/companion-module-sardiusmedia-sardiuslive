@@ -19,16 +19,17 @@ The quickest way to get started. Open the **Presets** tab in the button editor a
 ### Event Control
 - **Go Live** — Green button. Creates a live event on the selected channel. Turns brighter green when the event is active (via Live Event Active feedback).
 - **End Event** — Red button. Requires a **2-second hold** to fire, preventing accidental activation.
-- **+5 Min** — Yellow button. Adds 5 minutes to the active event's end time.
-- **-5 Min** — Orange button. Subtracts 5 minutes from the active event's end time.
+- **+5 Min / -5 Min** — Yellow/orange buttons. Add or subtract 5 minutes from the active event's end time.
+- **+30 Min / -30 Min** — Yellow/orange buttons. Add or subtract 30 minutes from the active event's end time.
+- **+60 Min / -60 Min** — Yellow/orange buttons. Add or subtract 60 minutes from the active event's end time.
 
 ### Channel Control
 - **Next Channel** — Steps forward through the channel cycle.
 - **Previous Channel** — Steps backward through the channel cycle.
 - **Channel Display** — Shows the active channel name. Highlights blue via Selected Channel Display feedback.
 
-### Monitoring
-- **Live Status** — Shows the active channel name, a live indicator, and a countdown. Turns green when a live event is active.
+### Status
+- **Error Display** — Shows `✓ OK` normally. Turns red and displays the error message when any action fails. Clears automatically on the next successful action.
 
 ---
 
@@ -84,6 +85,12 @@ Highlights the button when a channel is currently selected in the cycle. The def
 
 No additional options — this feedback simply reflects whether a channel is active in the cycle.
 
+### Action Error
+
+Active when the last action failed. The default button style displays the error message from `$(connection:last_error)`. Add this feedback to the Error Display preset or any other button to surface failures visually.
+
+No additional options.
+
 ---
 
 ## Variables
@@ -96,8 +103,9 @@ No additional options — this feedback simply reflects whether a channel is act
 | `$(connection:event_end_time)` | Scheduled end time of the active event (e.g. `3:00 PM`) |
 | `$(connection:event_countdown)` | Full countdown to event end (`HH:MM:SS`) |
 | `$(connection:event_countdown_short)` | Compact countdown — omits hours when under 1 hour (`MM:SS`) |
+| `$(connection:last_error)` | Error message from the last failed action. Empty when no error. |
 
-Replace `connection` with your actual connection name as configured in Companion (e.g. `$(sardius-live:selected_channel_name)`).
+Replace `connection` with your actual connection name as configured in Companion (e.g. `$(Sardius-Admin:selected_channel_name)`).
 
 ---
 
@@ -108,7 +116,8 @@ Replace `connection` with your actual connection name as configured in Companion
 3. **Channel dropdown is empty** — Channels haven't loaded yet. Save your credentials first, then reopen the settings panel. Dropdowns populate automatically after channels load.
 4. **Add/Subtract Time and End Event** only work when a live event is active on that channel.
 5. **Go Live** only works when no live event is currently active on that channel.
-6. **Presets not visible** — Disconnect and reconnect the module in Companion settings, then check the Presets tab.
+6. **Error Display button turns red** — Check the message shown on the button. Press any action button again to clear it once resolved.
+7. **Presets not visible** — Disconnect and reconnect the module in Companion settings, then check the Presets tab.
 
 ## Support
 

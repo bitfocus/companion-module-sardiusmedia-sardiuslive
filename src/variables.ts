@@ -9,5 +9,6 @@ export function getVariables(): CompanionVariableDefinitions<SardiusVariables> {
 		event_countdown_short: { name: 'Event Countdown (MM:SS)' },
 		selected_channel_id: { name: 'Selected Channel ID' },
 		selected_channel_name: { name: 'Selected Channel Name' },
+		last_error: { name: 'Last Action Error' },
 	}
 }

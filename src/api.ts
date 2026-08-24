@@ -61,7 +61,7 @@ export async function getSites(
 		.sort((a, b) => a.name.localeCompare(b.name))
 }
 
-export async function updateEvent(
+async function updateEvent(
 	apiKey: string,
 	accountId: string,
 	channelId: string,
@@ -196,5 +196,5 @@ export async function modifyCurrentEvent(
 	const updated = modifier(event)
 	await updateEvent(apiKey, accountId, channelId, event.id, updated)
 	await triggerSiteUpdate(apiKey, accountId, channelId)
-	return event
+	return updated
 }

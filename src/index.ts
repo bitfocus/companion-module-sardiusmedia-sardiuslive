@@ -17,6 +17,7 @@ export type SardiusVariables = {
 	event_countdown_short: string | undefined
 	selected_channel_id: string | undefined
 	selected_channel_name: string | undefined
+	last_error: string | undefined
 }
 
 interface SardiusInstanceTypes extends InstanceTypes {
@@ -35,6 +36,7 @@ export default class SardiusMediaInstance extends InstanceBase<SardiusInstanceTy
 	channelStates = new Map<string, ChannelState>()
 	channels: Channel[] = []
 	selectedChannelIndex = 0
+	hasError = false
 	pollTimer: ReturnType<typeof setInterval> | null = null
 	countdownTimer: ReturnType<typeof setInterval> | null = null
 
@@ -81,6 +83,11 @@ export default class SardiusMediaInstance extends InstanceBase<SardiusInstanceTy
 			(level, message) => this.log(level, message),
 			(channelId) => this.checkChannelStatus(channelId),
 			(op) => this.handleSelectedChannel(op),
+			(error) => {
+				this.hasError = !!error
+				this.setVariableValues({ last_error: error })
+				this.checkFeedbacks('action_error')
+			},
 		)
 		this.setActionDefinitions(actions)
 	}
@@ -103,6 +110,7 @@ export default class SardiusMediaInstance extends InstanceBase<SardiusInstanceTy
 			(channelId) => this.channelStates.get(channelId),
 			() => this.handleSelectedChannel('get'),
 			this.label,
+			() => this.hasError,
 		)
 		this.setFeedbackDefinitions(feedbacks)
 	}
@@ -218,8 +226,9 @@ export default class SardiusMediaInstance extends InstanceBase<SardiusInstanceTy
 				}
 				this.checkFeedbacks('live_event_active')
 			}
-		} catch {
-			// Silently fail on polling errors to avoid log spam
+		} catch (err) {
+			// Suppress per-poll errors to avoid log spam; visible at debug level
+			this.log('debug', `Poll error for ${channelId}: ${err instanceof Error ? err.message : String(err)}`)
 		}
 	}
 

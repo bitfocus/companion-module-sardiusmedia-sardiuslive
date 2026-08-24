@@ -52,6 +52,11 @@ function guardAction(
 }
 
 function errMsg(error: unknown): string {
+	// Prefer the API's message field over the generic Error message
+	if (error && typeof error === 'object' && 'response' in error) {
+		const resp = (error as { response?: { data?: { message?: string } } }).response
+		if (resp?.data?.message) return resp.data.message
+	}
 	return error instanceof Error ? error.message : 'Unknown error'
 }
 
@@ -61,6 +66,7 @@ export function getActions(
 	log: (level: LogLevel, message: string) => void,
 	onEventChanged: (channelId: string) => void,
 	getSelectedChannel: (op: 'next' | 'prev' | 'get') => Channel | null,
+	setLastError: (error: string) => void,
 ): CompanionActionDefinitions {
 	return {
 		open_scp: {
@@ -69,11 +75,13 @@ export function getActions(
 			options: [],
 			callback: async (_action: CompanionActionEvent, _context: CompanionActionCallbackContext) => {
 				const url = 'https://cp.sardius.media'
+				// exec is required here because Node's built-in URL opener (open/xdg-open/start)
+				// is not available as a pure Node API — shell invocation is the standard approach.
 				const command =
 					process.platform === 'darwin'
 						? `open "${url}"`
 						: process.platform === 'win32'
-							? `start "${url}"`
+							? `start "" "${url}"`
 							: `xdg-open "${url}"`
 				exec(command, (error) => {
 					if (error) log('error', `Failed to open browser: ${error.message}`)
@@ -99,12 +107,15 @@ export function getActions(
 				const channelId = resolveChannelId(action.options, getSelectedChannel)
 				const minutes = Number(action.options.minutes) || 5
 				if (!guardAction(config, channelId, log)) return
+				setLastError('')
 				try {
 					const event = await modifyCurrentEvent(config.apiKey, config.accountId, channelId, (e) => addMinutesToEvent(e, minutes))
 					log('info', `Added ${minutes} minutes to event "${event.title}"`)
 					onEventChanged(channelId)
 				} catch (error) {
-					log('error', errMsg(error))
+					const msg = errMsg(error)
+					setLastError(msg)
+					log('error', msg)
 				}
 			},
 		},
@@ -127,12 +138,15 @@ export function getActions(
 				const channelId = resolveChannelId(action.options, getSelectedChannel)
 				const minutes = Number(action.options.minutes) || 5
 				if (!guardAction(config, channelId, log)) return
+				setLastError('')
 				try {
 					const event = await modifyCurrentEvent(config.apiKey, config.accountId, channelId, (e) => subtractMinutesFromEvent(e, minutes))
 					log('info', `Subtracted ${minutes} minutes from event "${event.title}"`)
 					onEventChanged(channelId)
 				} catch (error) {
-					log('error', errMsg(error))
+					const msg = errMsg(error)
+					setLastError(msg)
+					log('error', msg)
 				}
 			},
 		},
@@ -154,6 +168,7 @@ export function getActions(
 				const channelId = resolveChannelId(action.options, getSelectedChannel)
 				const eventName = String(action.options.eventName) || 'Live Event'
 				if (!guardAction(config, channelId, log)) return
+				setLastError('')
 				try {
 					const currentEvent = await getCurrentEvent(config.accountId, channelId)
 					if (currentEvent) { log('warn', 'There is already an active live event'); return }
@@ -165,7 +180,14 @@ export function getActions(
 					log('info', `Created new event "${eventName}"`)
 					onEventChanged(channelId)
 				} catch (error) {
-					log('error', errMsg(error))
+					const msg = errMsg(error)
+					if (msg.includes('encoder input is already in use')) {
+						setLastError('400 — Resource conflict\nEncoder busy\nTry in 5 Min')
+						log('warn', '400 — Resource conflict: encoder input is already in use. Try in 5 min')
+					} else {
+						setLastError(msg || 'Unknown error creating event')
+						log('error', msg || 'Unknown error creating event')
+					}
 				}
 			},
 		},
@@ -197,12 +219,15 @@ export function getActions(
 				const config = getConfig()
 				const channelId = resolveChannelId(action.options, getSelectedChannel)
 				if (!guardAction(config, channelId, log)) return
+				setLastError('')
 				try {
 					const event = await modifyCurrentEvent(config.apiKey, config.accountId, channelId, endEventNow)
 					log('info', `Ended event "${event.title}"`)
 					onEventChanged(channelId)
 				} catch (error) {
-					log('error', errMsg(error))
+					const msg = errMsg(error)
+					setLastError(msg)
+					log('error', msg)
 				}
 			},
 		},
